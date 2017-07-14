@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="google-appengine-python" name="Google App Engine (Python)">
+      <configuration>
+        <option name="rootFolder" value="C:\Users\antho\Desktop\fyp" />
+        <option name="sdkFolder" value="C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin" />
+        <option name="templatesFolder" value="" />
+        <option name="oauth2" value="false" />
+        <option name="deployConfigured" value="false" />
+        <option name="saveCredentials" value="false" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/condaenv" />
+      <excludeFolder url="file://$MODULE_DIR$/images" />
+      <excludeFolder url="file://$MODULE_DIR$/nltk-data" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/eval/input" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/eval/models" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/eval/output" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/glove/crawl/input" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/glove/crawl/out" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/glove/crawl/output" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/glove/model" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/textsum/data" />
+      <excludeFolder url="file://$MODULE_DIR$/summarization/textsum/input" />
+      <excludeFolder url="file://$MODULE_DIR$/textsum/data" />
+    </content>
+    <orderEntry type="jdk" jdkName="Python 3.5.2 (C:\Users\antho\Anaconda3\envs\fyp\python.exe)" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Google App Engine SDK" level="project" />
+  </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
+  </component>
+  <component name="TestRunnerService">
+    <option name="projectConfiguration" value="Nosetests" />
+    <option name="PROJECT_TEST_RUNNER" value="Nosetests" />
+  </component>
+</module>
