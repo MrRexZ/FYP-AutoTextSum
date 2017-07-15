@@ -53,12 +53,11 @@ def distributed_download_process(session, sc, urls, schema, base_url, context_si
     for url in urls:
         out_dir_name += url.split("/")[-1]
     corpuses = urlsRDD.map(lambda url: download_data(base_url + url, out_dir_name))
-    list_of_records = corpuses.flatMap(lambda corpus: [re.sub(r'[^\x00-\x7F]+', ' ', record.payload.read().decode("UTF-8")) for i, record in enumerate(corpus)], 10).sample(False, 0.0001,11)
+    list_of_records = corpuses.flatMap(lambda corpus: [re.sub(r'[^\x00-\x7F]+', ' ', record.payload.read().decode("UTF-8")) for i, record in enumerate(corpus)], 10)
     coocurrence = list_of_records.flatMap(lambda record: map_coocurence(context_size, record))
     coor_count = coocurrence.reduceByKey(lambda x, y: x + y)
     result = coor_count.map(lambda x: [x[0][0], x[0][1], x[1]])
     DF = session.createDataFrame(result, schema)
-    # DF.show()
     DF.write.csv(os.path.join('output', out_dir_name))
     sc.stop()
 
@@ -69,18 +68,11 @@ def sequential_download_process(session, sc, urls, schema, base_url, context_siz
         sc = session.sparkContext
         filename = url.split("/")[-1]
         corpus = download_data(base_url + url, filename)
-
-        # sc.addFile(base_url +url)
-        # file = SparkFiles.get(url.split("/")[-1])
-        # corpus = WARCFile(fileobj=gzip.open(file))
-
-        #corpus = WARCFile(fileobj=gzip.open("CC-MAIN-20170423031158-00000-ip-10-145-167-34.ec2.internal.warc.wet.gz"))
-        listOfRecords = sc.parallelize([re.sub(r'[^\x00-\x7F]+', ' ', record.payload.read().decode("UTF-8")) for i, record in enumerate(corpus)], 10).sample(False, 0.0001, 11)
+        listOfRecords = sc.parallelize([re.sub(r'[^\x00-\x7F]+', ' ', record.payload.read().decode("UTF-8")) for i, record in enumerate(corpus)], 10)
         coor = listOfRecords.flatMap(lambda record : map_coocurence(context_size, record))
         coor_count = coor.reduceByKey(lambda x, y: x + y)
         result = coor_count.map(lambda x: [x[0][0], x[0][1], x[1]])
         DF = session.createDataFrame(result, schema)
-        #DF.show()
         DF.write.csv(os.path.join('output', filename))
         sc.stop()
 
@@ -94,7 +86,7 @@ def local_process(session, sc, input_directory, context_size):
         filename = file_path.split("/")[-1]
         corpus = WARCFile(fileobj=gzip.open(file_path))
         list_of_records = sc.parallelize(
-            [re.sub(r'[^\x00-\x7F]+', ' ', record.payload.read().decode("UTF-8")) for i, record in enumerate(corpus)], 10).sample(False, 0.0001, 11)
+            [re.sub(r'[^\x00-\x7F]+', ' ', record.payload.read().decode("UTF-8")) for i, record in enumerate(corpus)], 10)
         coor = list_of_records.flatMap(partial(map_coocurence, context_size))
         coor_count = coor.reduceByKey(lambda x, y: x + y)
         result = coor_count.map(lambda x: [x[0][0], x[0][1], x[1]])

@@ -3,7 +3,7 @@
   <component name="FacetManager">
     <facet type="google-appengine-python" name="Google App Engine (Python)">
       <configuration>
-        <option name="rootFolder" value="C:\Users\antho\Desktop\fyp" />
+        <option name="rootFolder" value="C:\Users\antho\Desktop\FYP-AutoTextSum" />
         <option name="sdkFolder" value="C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin" />
         <option name="templatesFolder" value="" />
         <option name="oauth2" value="false" />

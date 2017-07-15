@@ -67,7 +67,6 @@ def _sentences_above_median(doc_vectors, sentences_tokens, sentences_median, gbl
 
 def _calc_median(sentencevector):
     import scipy.spatial.distance
-    from scipy.linalg import norm
     senvecrange = range(len(sentencevector))
     sentences_median = numpy.empty(len(sentencevector), dtype=float)
     for f_senVecIndex in senvecrange:
@@ -104,5 +103,5 @@ def _convert_document_to_sentences_vectors(glove_model, sentence, dim):
                 sentences_vector[index] = sentences_vector[index] + glove_model.word_vec(currentsentence[innerindex])
             except KeyError as error:
                 pass
-                #print('Key Error : ', error.args)
+                print('Vocab not found for word : ', error.args,)
     return sentences_vector
