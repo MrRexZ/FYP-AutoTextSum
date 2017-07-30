@@ -49,16 +49,31 @@ The evaluation dataset used is DUC 2003 dataset, which can be requested from [he
 but only task 1 is used.
 This is because task 1 is a single document summarization, and the others are not, and so it matches with the purpose and objective of the system.
 
-## 3. Implementation
+## 3. Design & Implementation
+
 
 ### 3.1 GloVe
-Building a word representation requires it to be converted into a numerical format., GloVe is a vector representation for words, therefore is a suitable module to be used. By inputting a training set and using the provided functions, it is possible to generate a word-context matrix representation, which basically provides information regarding how likely a word appears in a given context of another word. The dataset used is Common Crawl.
+Building a word representation requires it to be converted into a numerical format. 
+There are 2 popular models for word vectors representation available presently , which are word2vec or GloVe.
+GloVe is chosen over word2vec due to the nature of GloVe which was generated due to it's a count-based model, which makes it suitably easy for 
+vocab re-training as compared to word2vec, which is a predictive-based approach.
+By inputting a training set and using the provided functions, it is possible to generate a word-context matrix representation, which basically provides information regarding how likely a word appears in a given context of another word. The dataset used is Common Crawl.
 Despite this, there are instances where target words that seem irrelevant from a given context are predicted. To solve this problem, instead of storing using the probability alone, we will be using the notion co-occurrence probability. If the target word is irrelevant to the context word, the impact will be negated since they possess equal likelihood to happen on a given word. Based on this, a more accurate Word-Context relationship can be developed in representation of vectors.
-From the relationship in-between words, it is possible to derive a notion of similarity based on 2 words. Using vector additions on a group of correlated words, it is then possible to derive  the similarity between 2 sentences.
+From the relationship in-between words, it is possible to derive a notion of similarity based on 2 words. 
+Using vector additions on a group of correlated words, it is then possible to derive the similarity between 2 sentences, and in turn to determine the similarity of 2 documents.
+This approach contains several issues, with one being that it may not yield accurate document-to-document similarity matrix.
+Future work will include the use of POS tagging, which is the process of determining which category each word belongs, to be utilized as
+a weighting factor, and context reduction by finding the topic of the sentence and comparing them with the topic of another sentence.
+
 
 #### 3.1.1 Building a Word Co-occurrence Matrix
-The process starts by iterating through every possible word in a corpus as a target word. A window size of size C is used to define the context size, both to left and right for each of the target words. With C defined, an inner iteration is made through every possible context words within the context size. The combination of the target word and context word is then mapped into a numerical format supporting floating point number and mantissa. The value is calculated with the formula 1/(i+1) where i represents the word-space between context word and target word. This means the word that is farther away will have lower co-occurrence value. However, to suitably train this dataset requires a huge dataset.
+The process starts by iterating through every possible word in a corpus as a target word. 
+A window size of size C is used to define the context size, both to left and right for each of the target words. 
+With C defined, an inner iteration is made through every possible context words within the context size. 
+The combination of the target word and context word is then mapped into a numerical format supporting floating point number and mantissa. The value is calculated with the formula 1/(i+1) where i represents the word-space between context word and target word. This means the word that is farther away will have lower co-occurrence value. However, to suitably train this dataset requires a huge dataset.
 ##### 3.1.1.1 PySpark
+To build word co-occurrence, Spark architecture is utilized due to the amount of data that is required for processing.
+This allows concurrent/parallel processing of information or data, yielding more result per time unit.
 With PySpark, I submitted a Spark Job containing a list of URL for PySpark to download programatically through caching to its local hard drive. The Spark job is then configured to have each node utilize 8 worker tasks, and to spawn another
 Each of this URL are then processed sequentially by each of the job. As soon as the download from the URL is finished, an operation is used to unpack the file in GZIP format and then read using the WARC library.
 The WARC library is used to open the WARC file format, and process all the records in the WARC file.
@@ -69,7 +84,8 @@ After tokenizing, I iterate through the linguistic units, and make a comparison 
 The result for the other partition is also combined/reduced into the same list in the end.
 The resulting list is then reduced by performing summation of the number of target word and context word pairs count.
 After this step, RDD itself is converted into a dataframe, which shows a list of data in a tabular format, and the result is then written into a CSV format.
-However, at this moment, the corpus does not make use of this data yet as it takes really long time to complete, and instead we load a pre-trained GloVe model.
+However, at this moment, the corpus does not make use of this data yet as it takes really long time to complete, 
+and instead we load a pre-trained GloVe model.
 
 #### 3.1.2 Neural Network Training Phase
 After word co-occurrence matrix result has been received, there is an additional step that is required; each of the
@@ -86,6 +102,8 @@ A better approach would be to convert it to a dictionary. For this purpose howev
 After a list containing the word has been updated, we proceeded to create a Tensorflow graph.
 
 #### 3.1.3 Tensorflow Adagrad Network
+Tensorflow is used for the reason that it's a stable framework and optimized for creating machine learning model, and in this
+regards for neural network, is also suitable.
 To accommodate the online-training feature for text summarization algorithm, 2 tensorflow graphs have to be created at most at a time. The reason being that a tensorflow graph’s nodes cannot be resized once attached to a session and run, in which this case requires resizing of nodes. This is because the graph nodes rely on vocab size, and that in re-training process, old model with old vocab size has to be loaded first, and they can only be loaded when a session is running. As soon as new vocab size or new training data arrives, the vocab may change and will require resizing the graph nodes. In order to do this, a second graph is therefore needed to be created.
 The first tensorflow graph contains 2 constant node, 3 inputs, and  4 variable graph nodes.
 The constant nodes are consist of scaling factor and max co-occurrence. 2 of these components are parameters to the weighting function.
@@ -116,11 +134,15 @@ This sample block of texts are only used for training.”, the following graph c
 The word “are” located on top right hand side, the furthest away from all the other words. This is because of 2 reasons; firstly, there are only 3 co-occurrences of the words, the fewest when compared to all other words. Secondly, it depends on the initialized value of the nodes’ weights. The same happens for the word “of” as well as there are only 3 instances of the words.
 
 #### 3.1.4 Extractive Text Summarization Algorithm
-The text summarization algorithms works by tokenizing the input of document into a group of words, allocating each of the word 
+The text summarization algorithm is a partial topic-modeling approach in generating text summary.
+This is because each sentence can be represented as a singular idea/topic, and in this implementation, it is represented as a number.
+The global meaning of the document is obtained through aggregation of all of its sentences' meaning through the represented median value,
+which is regarded as the summary for that particular piece of document/writings.
+The process works by tokenizing the input of document into a group of words, allocating each of the word 
 with a word vector, and combine the word vectors by performing vector summation at sentence level.
 After this, each sentence similarity is compared with one another, and we find the median of each of the sentence
 similarity. After that, we get the median from each of the sentence's median of similarity, to be represented as global median.
-Sentence with median of similarity value above the global median is regarded as the summary.
+Sentence with median of similarity value above the global median is regarded as part of the summary. 
 
 ## 4. Results
 As evaluation is performed with BLEU metric, the result is not significantly satisfactory.
